@@ -4,10 +4,10 @@ use AppZz\Helpers\Arr;
 
 /**
  * @package Uploader
- * @version 1.1 
+ * @version 1.1
  */
 class Uploader {
-	
+
 	private $_upload_dir;
 	private $_mimes = array (
 		'gif'  =>array('image/gif'),
@@ -27,7 +27,7 @@ class Uploader {
 	const UPLOAD_DIR = 'tmp';
 
 	public function __construct ()
-	{		
+	{
 		global $plupload_activated;
 
 		if ( ! isset ($plupload_activated))
@@ -36,7 +36,7 @@ class Uploader {
 		if ($plupload_activated === TRUE) {
 			add_action('admin_enqueue_scripts', array ($this, 'scripts'));
 			add_action('wp_ajax_plupload',  array ($this, 'handle'));
-			add_action('wp_ajax_nopriv_plupload', array ($this, 'handle')); 
+			add_action('wp_ajax_nopriv_plupload', array ($this, 'handle'));
 			$this->_mimes = apply_filters('plupload_mimes', $this->_mimes);
 		}
 	}
@@ -46,7 +46,7 @@ class Uploader {
 		return new Uploader ();
 	}
 
-	public function get_mimes () 
+	public function get_mimes ()
 	{
 		return $this->_mimes;
 	}
@@ -68,7 +68,7 @@ class Uploader {
 	}
 
 	public static function insert_file ($params)
-	{		
+	{
 		$defaults = array (
 			'id'       =>1,
 			'title'    =>'Выбрать файл',
@@ -84,7 +84,7 @@ class Uploader {
 		);
 
 		$params = wp_parse_args($params, $defaults);
-		extract ($params);	
+		extract ($params);
 
 		$types = (array) $types;
 		$types = implode (',', $types);
@@ -93,19 +93,19 @@ class Uploader {
 
 		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-nonce="%s">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), wp_create_nonce('wp-plupload-admin-'.$types));
 		$html .= $before;
-		
+
 		$html .= '<div class="plupload-features-holder">
 		    <div class="plupload-features">
 			    <div>Максимальный размер файла: <span class="plupload-max-file-size"></span></div>
 			    <div>Разрешенные типы файлов: <span class="plupload-allowed-formats"></span></div>
 		    </div>
 	    </div>';
-	    
+
 	    $html .= sprintf ('<a id="plupload-pickfiles-%s" role="button" class="button button-primary plupload-pickfiles" href="#">%s</a>', esc_attr($id), $title);
 	    $html .= '<div id="media-items" class="plupload-filelist hide-if-no-js"></div>';
 	    $html .= $after;
 	    $html .= '</div>';
-		
+
 		return $html;
 	}
 
@@ -123,48 +123,48 @@ class Uploader {
 
 		if ( !check_ajax_referer( 'wp-plupload-admin-' . $types, '_wpnonce', FALSE ) ) {
 			$this->_result (array('status' => 403, 'message' => 'Ошибка доступа.'));
-		}		
+		}
 
-		nocache_headers();				
+		nocache_headers();
 
 		if ($newname) {
-			
+
 			if ($newname == 'random') {
 				$newname = uniqid('plupl', TRUE);
 			}
-			
+
 			$name = pathinfo ($newname, PATHINFO_FILENAME) . '.' . pathinfo ($name, PATHINFO_EXTENSION);
 		}
-		
+
 		if ($ow) {
-			$path = $this->_upload_dir . DIRECTORY_SEPARATOR . $name;		
+			$path = $this->_upload_dir . DIRECTORY_SEPARATOR . $name;
 		}
 		else
 			$path = $this->_unique_filename ($name);
-		
+
 		// Look for the content type header
 		if (isset($_SERVER["HTTP_CONTENT_TYPE"]))
 			$content_type = $_SERVER["HTTP_CONTENT_TYPE"];
-				
+
 		if (isset($_SERVER["CONTENT_TYPE"]))
 			$content_type = $_SERVER["CONTENT_TYPE"];
 
 		// Handle non multipart uploads older WebKit versions didn't support multipart in HTML5
-		if (strpos($content_type, "multipart") !== false) 
+		if (strpos($content_type, "multipart") !== false)
 		{
 			if ( !empty($_FILES) AND isset ($_FILES[self::FILEFIELD]))
 				$uploaded = $_FILES[self::FILEFIELD]['tmp_name'];
-			else		
+			else
 				$this->_result (array('status' => 404, 'message' => 'Не найден указанный файл'));
-			
-			if ($uploaded && @is_uploaded_file($uploaded)) 
+
+			if ($uploaded && @is_uploaded_file($uploaded))
 			{
 				// Open temp file
 				$out = fopen($path, $chunk == 0 ? "wb" : "ab");
 				if ($out) {
 					// Read binary input stream and append it to temp file
 					$in = fopen($uploaded, "rb");
-		
+
 					if ($in) {
 						while ($buff = fread($in, 4096)) {
 							fwrite($out, $buff);
@@ -172,7 +172,7 @@ class Uploader {
 					} else {
 						$this->_result (array('status' => 500, 'message' => 'Ошибка при загрузке файла.'));
 					}
-						
+
 					fclose($in);
 					fclose($out);
 					@unlink($uploaded);
@@ -183,31 +183,31 @@ class Uploader {
 			} else {
 				$this->_result (array('status' => 500, 'message' => 'Ошибка при загрузке файла.'));
 			}
-				
+
 		} else {
 			// Open temp file
 			$out = fopen($path, $chunk == 0 ? "wb" : "ab");
-			
+
 			if ($out) {
 				// Read binary input stream and append it to temp file
 				$in = fopen("php://input", "rb");
-		
+
 				if ($in) {
 					while ($buff = fread($in, 4096))
 						fwrite($out, $buff);
 				} else
 					$this->_result (array('status' => 500, 'message' => 'Ошибка при загрузке файла.'));
-		
+
 				fclose($in);
 				fclose($out);
-								
+
 			} else {
 				$this->_result (array('status' => 500, 'code' => 102, 'message' => 'Ошибка при загрузке файла.'));
 			}
 		}
-		
+
 		$checked = $this->_check_type ($path, $types);
-		
+
 		if ($checked->passed) {
 			//$filename = _wp_relative_upload_path ($path);
 			$filename = str_replace(ABSPATH, '', $path);
@@ -216,7 +216,7 @@ class Uploader {
 		else {
 			@unlink ($path);
 			$this->_result (array('status' => 400, 'checked'=>$checked, 'message' => 'Запрещенный тип файла.'));
-		}		
+		}
 	}
 
 	private function _params ()
@@ -245,7 +245,7 @@ class Uploader {
 			'crunching' => __('Crunching&hellip;'),
 			'deleted' => __('moved to the trash.'),
 			'error_uploading' => __('&#8220;%s&#8221; has failed to upload.')
-		);		
+		);
 
 		#$uploader_cfg['ajaxurl'] = admin_url('admin-ajax.php');
 		#$uploader_cfg['maxsize'] = self::$_config['maxsize'];
@@ -258,7 +258,7 @@ class Uploader {
 	{
 		if (is_writeable ($this->_upload_dir))
 			return $this->_upload_dir . DIRECTORY_SEPARATOR . wp_unique_filename ($this->_upload_dir, $filename);
-		else 
+		else
 			return false;
 	}
 
@@ -271,7 +271,7 @@ class Uploader {
 	{
 		$upload_dir = preg_replace('#[^\w\-\_]+#iu', '', $upload_dir);
 		$wp_upload_dir = wp_upload_dir();
-		
+
 		$upload_dirs = array ();
 
 		if ( !empty ($upload_dir)) {
@@ -288,11 +288,16 @@ class Uploader {
 		}
 
 		return $this;
-	}	
+	}
 
 	private function _check_type ($filename, $types)
 	{
 		$ret = new \stdClass;
+
+		if (empty($this->_mimes)) {
+			$ret->passed = $ret->ext = $ret->mime_needed = $ret->mime_detected = TRUE;
+			return $ret;			
+		}
 
 		$ret->passed = $ret->ext = $ret->mime_needed = $ret->mime_detected = FALSE;
 
@@ -306,12 +311,12 @@ class Uploader {
 			return $ret;
 
 		$types = array_map ('trim', $types);
-		$types = array_flip($types);		
-		
-		$mimes = array_intersect_key($this->_mimes, $types);			
+		$types = array_flip($types);
+
+		$mimes = array_intersect_key($this->_mimes, $types);
 
 		if ( ! $mimes)
-			return $ret;		
+			return $ret;
 
 		$ret->ext = mb_strtolower (pathinfo ($filename, PATHINFO_EXTENSION));
 
@@ -325,10 +330,10 @@ class Uploader {
 				$ret->passed = in_array ($mime_detected, $mime);
 				$ret->mime_needed = $mime;
 				$ret->mime_detected = $mime_detected;
-				return $ret;				
+				return $ret;
 			}
 		}
 
 		return $ret;
-	}	
+	}
 }
