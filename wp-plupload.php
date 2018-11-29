@@ -3,7 +3,7 @@
   Plugin Name: WP Plupload
   Description: Pluploader Admin Handler
   Author: CoolSwitcher
-  Version: 1.1
+  Version: 1.2
   License: GPL
 */
 

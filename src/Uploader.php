@@ -4,7 +4,7 @@ use AppZz\Helpers\Arr;
 
 /**
  * @package Uploader
- * @version 1.1
+ * @version 1.2
  */
 class Uploader {
 
@@ -22,7 +22,7 @@ class Uploader {
 		'txt'  =>array('text/plain', 'text/csv')
 	);
 
-	const VERSION = '1.1';
+	const VERSION = '1.2';
 	const FILEFIELD = 'wp_plupload';
 	const UPLOAD_DIR = 'tmp';
 
@@ -65,7 +65,7 @@ class Uploader {
 		global $is_IE;
 
 		if ($is_IE) {
-			wp_enqueue_style ("wp-plupload-admin-ie", plugins_url ("../assets/wp-plupload-ie.css", __FILE__), array(), self::VERSION);
+			wp_enqueue_style ("wp-plupload-admin-ie", plugins_url ("../assets/wp-plupload-ie.min.css", __FILE__), array(), self::VERSION);
 		}
 
 		wp_enqueue_script ("wp-plupload-admin", plugins_url ("../assets/wp-plupload.min.js", __FILE__), array ('jquery', 'plupload'), self::VERSION);
