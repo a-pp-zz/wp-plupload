@@ -62,6 +62,12 @@ class Uploader {
 
 
 		wp_enqueue_style ("wp-plupload-admin", plugins_url ("../assets/wp-plupload.min.css", __FILE__), array(), self::VERSION);
+		global $is_IE;
+
+		if ($is_IE) {
+			wp_enqueue_style ("wp-plupload-admin-ie", plugins_url ("../assets/wp-plupload-ie.css", __FILE__), array(), self::VERSION);
+		}
+
 		wp_enqueue_script ("wp-plupload-admin", plugins_url ("../assets/wp-plupload.min.js", __FILE__), array ('jquery', 'plupload'), self::VERSION);
 
 		$this->_params();
@@ -296,7 +302,7 @@ class Uploader {
 
 		if (empty($this->_mimes)) {
 			$ret->passed = $ret->ext = $ret->mime_needed = $ret->mime_detected = TRUE;
-			return $ret;			
+			return $ret;
 		}
 
 		$ret->passed = $ret->ext = $ret->mime_needed = $ret->mime_detected = FALSE;
