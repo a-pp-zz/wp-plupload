@@ -275,7 +275,7 @@ class Uploader {
 
 	private function _upload_dir ($upload_dir = self::UPLOAD_DIR)
 	{
-		$upload_dir = preg_replace('#[^\w\-\_]+#iu', '', $upload_dir);
+		$upload_dir = preg_replace('#[^\w\-\_\/]+#iu', '', $upload_dir);
 		$wp_upload_dir = wp_upload_dir();
 
 		$upload_dirs = array ();
