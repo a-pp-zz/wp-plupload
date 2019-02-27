@@ -4,11 +4,12 @@ use AppZz\Helpers\Arr;
 
 /**
  * @package Uploader
- * @version 1.2
+ * @version 1.5
  */
 class Uploader {
 
 	private $_upload_dir;
+
 	private $_mimes = array (
 		'gif'  =>array('image/gif'),
 		'jpg'  =>array('image/jpeg'),
@@ -22,19 +23,20 @@ class Uploader {
 		'txt'  =>array('text/plain', 'text/csv')
 	);
 
-	const VERSION = '1.2';
+	const VERSION = '1.5';
 	const FILEFIELD = 'wp_plupload';
-	const UPLOAD_DIR = 'tmp';
 
 	public function __construct ()
 	{
 		global $plupload_activated;
 
-		if ( ! isset ($plupload_activated))
+		if ( ! isset ($plupload_activated)) {
 			$plupload_activated = TRUE;
+		}
 
 		if ($plupload_activated === TRUE) {
 			add_action('admin_enqueue_scripts', array ($this, 'scripts'));
+			add_action('wp_enqueue_scripts', array ($this, 'scripts'));
 			add_action('wp_ajax_plupload',  array ($this, 'handle'));
 			add_action('wp_ajax_nopriv_plupload', array ($this, 'handle'));
 			$this->_mimes = apply_filters('plupload_mimes', $this->_mimes);
@@ -60,15 +62,17 @@ class Uploader {
 			wp_enqueue_script ("plupload-{$runtime}");
 		endforeach;
 
+		$version = Uploader::VERSION;
+		//$version .= '-'. mt_rand (9999, 9999999999);
 
-		wp_enqueue_style ("wp-plupload-admin", plugins_url ("../assets/wp-plupload.min.css", __FILE__), array(), self::VERSION);
+		wp_enqueue_style ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.min.css", __FILE__), array(), $version);
 		global $is_IE;
 
 		if ($is_IE) {
-			wp_enqueue_style ("wp-plupload-admin-ie", plugins_url ("../assets/wp-plupload-ie.min.css", __FILE__), array(), self::VERSION);
+			wp_enqueue_style ("wp-plupload-plugin-ie", plugins_url ("../assets/wp-plupload-ie.min.css", __FILE__), array(), $version);
 		}
 
-		wp_enqueue_script ("wp-plupload-admin", plugins_url ("../assets/wp-plupload.min.js", __FILE__), array ('jquery', 'plupload'), self::VERSION);
+		wp_enqueue_script ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.min.js", __FILE__), array ('jquery', 'plupload'), $version);
 
 		$this->_params();
 	}
@@ -87,6 +91,8 @@ class Uploader {
 			'types'    =>'jpg',
 			'dir'	   =>'',
 			'ow'       =>'',
+			'preview'  =>0,
+			'preview_width' => 300
 		);
 
 		$params = wp_parse_args($params, $defaults);
@@ -97,7 +103,7 @@ class Uploader {
 
 		$html = '';
 
-		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-nonce="%s">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), wp_create_nonce('wp-plupload-admin-'.$types));
+		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-preview="%s" data-preview-width="%d" data-nonce="%s">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), esc_attr ($preview), intval ($preview_width), wp_create_nonce('wp-plupload-'.$types));
 		$html .= $before;
 
 		$html .= '<div class="plupload-features-holder">
@@ -108,7 +114,12 @@ class Uploader {
 	    </div>';
 
 	    $html .= sprintf ('<a id="plupload-pickfiles-%s" role="button" class="button button-primary plupload-pickfiles" href="#">%s</a>', esc_attr($id), $title);
-	    $html .= '<div id="media-items" class="plupload-filelist hide-if-no-js"></div>';
+
+	    if ($preview) {
+			$html .= '<div class="plupload-preview"></div>';
+	    }
+
+	    $html .= '<div class="plupload-filelist hide-if-no-js"></div>';
 	    $html .= $after;
 	    $html .= '</div>';
 
@@ -123,11 +134,11 @@ class Uploader {
 		$newname = Arr::get($_REQUEST, 'newname');
 		$types = Arr::get($_REQUEST, 'types');
 		$ow = Arr::get($_REQUEST, 'ow');
-		$dir = Arr::get($_REQUEST, 'dir', self::UPLOAD_DIR);
+		$dir = Arr::get($_REQUEST, 'dir', '');
 
 		$this->_upload_dir($dir);
 
-		if ( !check_ajax_referer( 'wp-plupload-admin-' . $types, '_wpnonce', FALSE ) ) {
+		if ( !check_ajax_referer( 'wp-plupload-' . $types, '_wpnonce', FALSE ) ) {
 			$this->_result (array('status' => 403, 'message' => 'Ошибка доступа.'));
 		}
 
@@ -136,7 +147,7 @@ class Uploader {
 		if ($newname) {
 
 			if ($newname == 'random') {
-				$newname = uniqid('plupl', TRUE);
+				$newname = $this->_uniqid_real (20);
 			}
 
 			$name = pathinfo ($newname, PATHINFO_FILENAME) . '.' . pathinfo ($name, PATHINFO_EXTENSION);
@@ -217,12 +228,25 @@ class Uploader {
 		if ($checked->passed) {
 			//$filename = _wp_relative_upload_path ($path);
 			$filename = str_replace(ABSPATH, '', $path);
-			$this->_result (array('status' => 201, 'filename'=>$filename));
+			$this->_result (array('status' => 201, 'filename'=>$filename, 'url'=>home_url ($filename), 'mime'=>$checked->mime_detected));
 		}
 		else {
 			@unlink ($path);
 			$this->_result (array('status' => 400, 'checked'=>$checked, 'message' => 'Запрещенный тип файла.'));
 		}
+	}
+
+	private function _uniqid_real ($lenght = 20)
+	{
+	    if (function_exists("random_bytes")) {
+	        $bytes = random_bytes(ceil($lenght / 2));
+	    } elseif (function_exists("openssl_random_pseudo_bytes")) {
+	        $bytes = openssl_random_pseudo_bytes(ceil($lenght / 2));
+	    } else {
+	        return uniqid ('plupl', true);
+	    }
+
+	    return substr(bin2hex($bytes), 0, $lenght);
 	}
 
 	private function _params ()
@@ -250,30 +274,29 @@ class Uploader {
 			'dismiss' => __('Dismiss'),
 			'crunching' => __('Crunching&hellip;'),
 			'deleted' => __('moved to the trash.'),
-			'error_uploading' => __('&#8220;%s&#8221; has failed to upload.')
+			'error_uploading' => __('&#8220;%s&#8221; has failed to upload.'),
+			'ajaxurl' => admin_url('admin-ajax.php')
 		);
 
-		#$uploader_cfg['ajaxurl'] = admin_url('admin-ajax.php');
-		#$uploader_cfg['maxsize'] = self::$_config['maxsize'];
-		#$uploader_cfg['image'] = implode (',', self::$_config['types']['image']);
-		#$uploader_cfg['doc'] = implode (',', self::$_config['types']['doc']);
-		wp_localize_script('wp-plupload-admin', 'pluploadConfig', $uploader_cfg);
+		wp_localize_script('wp-plupload-plugin', 'pluploadConfig', $uploader_cfg);
 	}
 
 	private function _unique_filename ($filename)
 	{
-		if (is_writeable ($this->_upload_dir))
+		if (is_writeable ($this->_upload_dir)) {
 			return $this->_upload_dir . DIRECTORY_SEPARATOR . wp_unique_filename ($this->_upload_dir, $filename);
-		else
-			return false;
+		}
+
+		return false;
 	}
 
-	private function _result ($result) {
+	private function _result ($result)
+	{
 		header('Content-Type: application/json; charset=utf-8');
 		die (json_encode ($result));
 	}
 
-	private function _upload_dir ($upload_dir = self::UPLOAD_DIR)
+	private function _upload_dir ($upload_dir = '')
 	{
 		$upload_dir = preg_replace('#[^\w\-\_\/]+#iu', '', $upload_dir);
 		$wp_upload_dir = wp_upload_dir();
@@ -321,8 +344,9 @@ class Uploader {
 
 		$mimes = array_intersect_key($this->_mimes, $types);
 
-		if ( ! $mimes)
+		if ( ! $mimes) {
 			return $ret;
+		}
 
 		$ret->ext = mb_strtolower (pathinfo ($filename, PATHINFO_EXTENSION));
 

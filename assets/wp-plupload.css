@@ -11,6 +11,12 @@
     display: none;
 }
 
+.plupload-preview {
+    display: none;
+    overflow: hidden;
+    margin-top: 10px;    
+}
+
 .plupload-error {
     padding: 10px 0 10px 14px;
     width: auto;

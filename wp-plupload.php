@@ -3,7 +3,7 @@
   Plugin Name: WP Plupload
   Description: Pluploader Admin Handler
   Author: CoolSwitcher
-  Version: 1.2
+  Version: 1.5
   License: GPL
 */
 
@@ -13,3 +13,9 @@ require_once __DIR__ . '/Autoloader.php';
 add_action('plugins_loaded', function () {
 	\WP_Plupload\Uploader::factory();
 });
+
+if ( ! function_exists ('wp_plupload')) :
+    function wp_plupload (array $params = array ()) {
+        return \WP_Plupload\Uploader::insert_file ($params);
+    }
+endif;

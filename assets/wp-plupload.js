@@ -114,7 +114,6 @@
 
 	var pluploadInit = function (container) {
 		var data = $(container).data()
-		//console.log(container)
 
 		var params = {
 			action: 'plupload',
@@ -132,6 +131,7 @@
 		var max_file_size_sel = $(container).find('.plupload-max-file-size');
 		var allowed_formats_sel = $(container).find('.plupload-allowed-formats');
 		var filelist_sel = $(container).find('.plupload-filelist');	
+		var preview_sel = $(container).find('.plupload-preview');	
 		var receiver = {}
 
 		if (data.receiver) {
@@ -140,6 +140,12 @@
 			if ($(receiver_obj).length > 0) {
 				receiver.tag = receiver_obj.prop("tagName").toLowerCase()		
 				receiver.obj = receiver_obj
+				receiver.preview = preview_sel
+
+				if (receiver.preview && data.previewWidth) {
+					receiver.preview_width = data.previewWidth;
+				}
+
 			} else {
 				receiver = null
 			}
@@ -150,7 +156,7 @@
 			browse_button : $(browse_button).attr('id'),
 			container : $(container).attr('id'),
 			max_file_size : data.maxsize,
-			url : /*pluploadConfig.ajaxurl*/ajaxurl + '?' + $.param(params),
+			url : pluploadConfig.ajaxurl + '?' + $.param(params),
 			file_data_name: data.filefield,
 			multi_selection: data.multi ? true : false,
 			multipart_params : multipart_params,
@@ -179,6 +185,10 @@
 					receiver.obj.val('')
 				} else {
 					receiver.obj.html('');
+				}
+
+				if (receiver.preview) {
+					receiver.preview.hide();
 				}
 			}		  
 
@@ -216,6 +226,10 @@
 				} else {
 					receiver.obj.html('');
 				}
+
+				if (receiver.preview) {
+					receiver.preview.hide();
+				}				
 			}	
 		});
 
@@ -232,11 +246,8 @@
 						receiver.obj.val('')
 					} else {
 						var json = JSON.stringify(uploadedFiles)
-						receiver.obj.val(json)
+						receiver.obj.val(json)		
 					}
-				} else if (data.type == 'image' && uploadedFiles.length === 1) {
-					var img = '<img src="/'+response.filename+'" />'
-					receiver.obj.html(img);
 				}
 			}
 			uploadedFiles = []
@@ -249,6 +260,11 @@
 			if (response.status === 201) {
 				uploadedFiles.push(response.filename)
 				showMessage (file, 'Файл успешно загружен!', $(filelist_sel), 'success')
+				
+				if (receiver.preview && response.mime.search('image') !== -1) {
+					var img = '<img width="'+receiver.preview_width+'" src="'+response.url+'" />'
+					receiver.preview.html(img).show();
+				}								
 			} else {
 				showMessage (file, response.message, $(filelist_sel), 'error')
 			}
@@ -261,6 +277,7 @@
 		$('.wp-plupload-container').each(function() {
 			pluploadInit($(this))
 		})
+
 	})
 
 })(jQuery)
