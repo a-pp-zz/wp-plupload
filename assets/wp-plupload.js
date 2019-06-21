@@ -132,6 +132,8 @@
 		var allowed_formats_sel = $(container).find('.plupload-allowed-formats');
 		var filelist_sel = $(container).find('.plupload-filelist');	
 		var preview_sel = $(container).find('.plupload-preview');	
+		var max_files_count = data.multi ? Number (data.multi) : 1;
+		
 		var receiver = {}
 
 		if (data.receiver) {
@@ -160,23 +162,32 @@
 			file_data_name: data.filefield,
 			multi_selection: data.multi ? true : false,
 			multipart_params : multipart_params,
-			filters : [
-				{title : 'Разрешенные типы', extensions: data.types}
-			]
+			filters: {
+			  mime_types : [
+			  	{title : 'Разрешенные типы', extensions: data.types}
+			  ]
+			},
 		})
 
 		uploader.bind('Init', function(up, params) {
 			$(max_file_size_sel).html(data.maxsize);
 			$(allowed_formats_sel).html(data.types);
 
-			if (data.multi) {
-				$(container).find('.plupload-features').append('<div>Можно загрузить несколько файлов одновременно</div>')
+			if (max_files_count) {
+				$(container).find('.plupload-features').append('<div>Максимальное число загружаемых файлов: '+max_files_count+'</div>')
 			}
 		});
 
 	  
 		uploader.bind('FilesAdded', function(up, files) {
-		  
+
+				if (files.length > max_files_count) {
+					alert ('Максимальное число загружаемых файлов: '+max_files_count);
+					up.splice(0);
+					up.refresh();
+					return false;
+				}
+
 		  	$(container).removeClass('is-uploaded')
 		  	$(filelist_sel).html('')
 

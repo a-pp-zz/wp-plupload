@@ -5,6 +5,7 @@
 
 .plupload-filelist {
     margin-top: 10px;
+    color: #000;
 }
 
 .plupload-filelist .progress {
@@ -44,6 +45,7 @@
     display: block;
     float: right;
     margin: 0 10px 0 15px;
+    color: #000;
 }
 
 .plupload-filelist span {
