@@ -29,7 +29,8 @@
     border-left-color: #dc3232;
 }
 
-.plupload-success {
+.plupload-success,
+.plupload-new {
     padding: 10px 0 10px 14px;
     width: auto;
     margin: 0 0 1px;
