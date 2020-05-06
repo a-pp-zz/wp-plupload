@@ -11,7 +11,8 @@
 				translated = pluploadConfig.upload_failed
 				break;
 			case plupload.FILE_EXTENSION_ERROR:
-				translated = pluploadConfig.invalid_filetype
+				translated = 'Неверный тип файла, выберите другой!';
+				//pluploadConfig.invalid_filetype
 				break;
 			case plupload.FILE_SIZE_ERROR:
 				translated = pluploadConfig.file_exceeds_size_limit.replace('%s', fileObj.name)
@@ -152,6 +153,8 @@
 				receiver = null
 			}
 		}
+
+		console.log (data.types);
 				
 		var uploader = new plupload.Uploader({
 			runtimes : 'html5,html4',
@@ -171,7 +174,7 @@
 
 		uploader.bind('Init', function(up, params) {
 			$(max_file_size_sel).html(data.maxsize);
-			$(allowed_formats_sel).html(data.types);
+			$(allowed_formats_sel).html(data.types.replace(',',', '));
 
 			if (max_files_count) {
 				$(container).find('.plupload-features').append('<div>Максимальное число загружаемых файлов: '+max_files_count+'</div>')
