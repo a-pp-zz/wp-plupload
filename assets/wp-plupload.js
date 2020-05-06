@@ -153,6 +153,8 @@
 				receiver = null
 			}
 		}
+
+		console.log (data.types);
 				
 		var uploader = new plupload.Uploader({
 			runtimes : 'html5,html4',
