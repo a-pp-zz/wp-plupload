@@ -4,7 +4,7 @@ use AppZz\Helpers\Arr;
 
 /**
  * @package Uploader
- * @version 1.6
+ * @version 1.6.x
  */
 class Uploader {
 
@@ -23,7 +23,7 @@ class Uploader {
 		'txt'  =>array('text/plain', 'text/csv')
 	);
 
-	const VERSION = '1.6.1';
+	const VERSION = '1.6.3';
 	const FILEFIELD = 'wp_plupload';
 
 	public function __construct ()
@@ -99,11 +99,12 @@ class Uploader {
 		extract ($params);
 
 		$types = (array) $types;
+		$types = array_map ('trim', $types);
 		$types = implode (',', $types);
 
 		$html = '';
 
-		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-preview="%s" data-preview-width="%d" data-nonce="%s">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), esc_attr ($preview), intval ($preview_width), wp_create_nonce('wp-plupload-'.$types));
+		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-preview="%s" data-preview-width="%d" data-nonce="%s" data-mobile="%d">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), esc_attr ($preview), intval ($preview_width), wp_create_nonce('wp-plupload-'.$types), (int)wp_is_mobile());
 		$html .= $before;
 
 		$html .= '<div class="plupload-features-holder">
