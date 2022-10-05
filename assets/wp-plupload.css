@@ -79,3 +79,13 @@
     display: inline-block;
     padding: 1%;
 }
+
+.wp-plupload-container .plupload-filedesc {
+    width: 100%;
+}
+
+.wp-plupload-container .plupload-filedesc textarea {
+    width: 100%;
+    padding: 1%;
+    height: 100px;    
+}

@@ -23,7 +23,7 @@ class Uploader {
 		'txt'  =>array('text/plain', 'text/csv')
 	);
 
-	const VERSION = '1.6.4';
+	const VERSION = '1.6.6';
 	const FILEFIELD = 'wp_plupload';
 
 	public function __construct ()
@@ -72,7 +72,7 @@ class Uploader {
 			wp_enqueue_style ("wp-plupload-plugin-ie", plugins_url ("../assets/wp-plupload-ie.min.css", __FILE__), array(), $version);
 		}
 
-		wp_enqueue_script ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.min.js", __FILE__), array ('jquery', 'plupload'), $version);
+		wp_enqueue_script ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.js", __FILE__), array ('jquery', 'plupload'), $version);
 
 		$this->_params();
 	}
@@ -80,19 +80,20 @@ class Uploader {
 	public static function insert_file ($params)
 	{
 		$defaults = array (
-			'id'       =>1,
-			'title'    =>'Выбрать файл',
-			'maxsize'  =>'2M',
-			'name'     =>'',
-			'receiver' =>'',
-			'multi'    =>0,
-			'before'   =>'',
-			'after'    =>'',
-			'types'    =>'jpg',
-			'dir'	   =>'',
-			'ow'       =>'',
-			'preview'  =>0,
-			'preview_width' => 300
+			'id'            =>1,
+			'title'         =>'Выбрать файл',
+			'maxsize'       =>'2M',
+			'name'          =>'',
+			'receiver'      =>'',
+			'multi'         =>1,
+			'before'        =>'',
+			'after'         =>'',
+			'types'         =>'jpg',
+			'dir'           =>'',
+			'ow'            =>'',
+			'preview'       =>0,
+			'preview_width' => 300,
+			'description'   => 0
 		);
 
 		$params = wp_parse_args($params, $defaults);
@@ -121,7 +122,13 @@ class Uploader {
 	    }
 
 	    $html .= '<div class="plupload-filelist hide-if-no-js"></div>';
+
+	    if ( ! empty ($description) AND is_array($description)) {
+	    	$html .= sprintf ('<div class="plupload-filedesc"><textarea maxlength="%d" name="%s" placeholder="%s"></textarea></div>', Arr::get ($description, 'maxlength', 2000), Arr::get ($description, 'name', 'plupload-filedesc'), Arr::get ($description, 'placeholder', 'Описание'));
+	    }
+
 	    $html .= $after;
+
 	    $html .= '</div>';
 
 		return $html;
@@ -229,7 +236,7 @@ class Uploader {
 		if ($checked->passed) {
 			//$filename = _wp_relative_upload_path ($path);
 			$filename = str_replace(ABSPATH, '', $path);
-			$this->_result (array('status' => 201, 'filename'=>$filename, 'url'=>home_url ($filename), 'mime'=>$checked->mime_detected));
+			$this->_result (array('status' => 201, 'filename'=>$filename, 'url'=>home_url ($filename), 'mime'=>(string)$checked->mime_detected));
 		}
 		else {
 			@unlink ($path);
