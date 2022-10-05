@@ -23,7 +23,7 @@ class Uploader {
 		'txt'  =>array('text/plain', 'text/csv')
 	);
 
-	const VERSION = '1.6.6';
+	const VERSION = '1.7.0';
 	const FILEFIELD = 'wp_plupload';
 
 	public function __construct ()
@@ -72,7 +72,7 @@ class Uploader {
 			wp_enqueue_style ("wp-plupload-plugin-ie", plugins_url ("../assets/wp-plupload-ie.min.css", __FILE__), array(), $version);
 		}
 
-		wp_enqueue_script ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.js", __FILE__), array ('jquery', 'plupload'), $version);
+		wp_enqueue_script ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.min.js", __FILE__), array ('jquery', 'plupload'), $version);
 
 		$this->_params();
 	}

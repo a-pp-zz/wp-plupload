@@ -292,6 +292,10 @@
 			pluploadInit($(this))
 		})
 
+    $(window).on('wp-plupload-reinit', function (event, target) {
+    	pluploadInit(target)  
+    });	
+
 	})
 
 })(jQuery)
