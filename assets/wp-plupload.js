@@ -296,6 +296,17 @@
     	pluploadInit(target)  
     });	
 
+    $(window).on('wp-plupload-preview', function (event, target) {
+			var preview = $(target.target).find('.plupload-preview'),
+					previewWidth = $(target.target).data('preview-width'),
+					receiver = $(target.target).data('receiver');
+					description = $(target.target).find('.plupload-filedesc textarea'),					
+					img = '<img width="'+previewWidth+'" src="'+target.preview.file+'" />';			
+			preview.html(img).show();
+			$(receiver).val(JSON.stringify([target.preview.path]));
+			$(description).val(target.preview.description);
+    });    
+
 	})
 
 })(jQuery)

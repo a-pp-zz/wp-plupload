@@ -4,7 +4,7 @@ use AppZz\Helpers\Arr;
 
 /**
  * @package Uploader
- * @version 1.6.x
+ * @version 1.7.x
  */
 class Uploader {
 
@@ -23,7 +23,7 @@ class Uploader {
 		'txt'  =>array('text/plain', 'text/csv')
 	);
 
-	const VERSION = '1.7.0';
+	const VERSION = '1.7.1';
 	const FILEFIELD = 'wp_plupload';
 
 	public function __construct ()
