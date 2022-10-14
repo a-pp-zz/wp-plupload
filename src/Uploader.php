@@ -23,7 +23,7 @@ class Uploader {
 		'txt'  =>array('text/plain', 'text/csv')
 	);
 
-	const VERSION = '1.7.1';
+	const VERSION = '1.7.2';
 	const FILEFIELD = 'wp_plupload';
 
 	public function __construct ()
@@ -93,7 +93,8 @@ class Uploader {
 			'ow'            =>'',
 			'preview'       =>0,
 			'preview_width' => 300,
-			'description'   => 0
+			'description'   => 0,
+			'silentmode'    => 0
 		);
 
 		$params = wp_parse_args($params, $defaults);
@@ -105,7 +106,7 @@ class Uploader {
 
 		$html = '';
 
-		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-preview="%s" data-preview-width="%d" data-nonce="%s">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), esc_attr ($preview), intval ($preview_width), wp_create_nonce('wp-plupload-'.$types));
+		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-preview="%s" data-preview-width="%d" data-nonce="%s" data-silentmode="%s">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), esc_attr ($preview), intval ($preview_width), wp_create_nonce('wp-plupload-'.$types), esc_attr ($silentmode));
 		$html .= $before;
 
 		$html .= '<div class="plupload-features-holder">
