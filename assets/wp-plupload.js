@@ -285,8 +285,21 @@
 					}			
 					
 					if (receiver.preview && response.mime.search('image') !== -1) {
-						var img = '<img width="'+receiver.preview_width+'" src="'+response.url+'" />'
+						var img = $('<img />');						
+						img.attr('src', response.url);
+							 
+						img.load(function() {
+							if ($(this).width() >= $(this).height()) {
+								img.attr('width', receiver.preview_width);
+							} else {
+								img.attr('height', receiver.preview_width);
+							}
+						});							  
+
 						receiver.preview.html(img).show();
+            $(container).trigger('wp-plupload-preview-changed', {
+              preview: $(receiver.preview)
+            });						
 					}								
 				} else {
 					showMessage (file, response.message, $(filelist_sel), 'error')
