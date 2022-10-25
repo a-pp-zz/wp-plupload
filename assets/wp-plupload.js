@@ -285,6 +285,12 @@
 					}			
 					
 					if (receiver.preview && response.mime.search('image') !== -1) {
+						
+						receiver.preview.css({
+							maxWidth: receiver.preview_width+'px',
+							maxHeight: receiver.preview_width+'px'
+						});
+
 						var img = $('<img />');						
 						img.attr('src', response.url);
 							 
