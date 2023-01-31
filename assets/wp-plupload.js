@@ -48,6 +48,14 @@
 			return translated
 		}
 
+		var refreshCounter = function (counter, total, filelist_sel) {
+			$(filelist_sel).find('.plupload-uploaded').html(counter);
+
+			if (total) {
+				$(filelist_sel).find('.plupload-total').html(total);				
+			}
+		}
+
 		var showError = function (message, file, filelist_sel) {
 			 var media_id = '#media-item-o_' + file.id
 			 message = '<strong>«'+file.name+'»</strong><br />' + message		
@@ -130,7 +138,9 @@
 					browse_button = $(container).find('.plupload-pickfiles'),
 					max_file_size_sel = $(container).find('.plupload-max-file-size'),
 					allowed_formats_sel = $(container).find('.plupload-allowed-formats'),
-					filelist_sel = $(container).find('.plupload-filelist'),	
+					filelist_sel = $(container).find('.plupload-filelist'),
+					total_sel = $(container).find('.plupload-total-holder'),
+					total_uploaded = 0,
 					preview_sel = $(container).find('.plupload-preview'),
 					features_sel = $(container).find('.plupload-features'),
 					max_files_count = data.multi ? Number (data.multi) : 1,
@@ -209,9 +219,15 @@
 			  	  showMessage (file, null, $(filelist_sel), 'new')
 			  });
 
+			  if (max_files_count > 1) {
+			  	$(total_sel).show();
+			  	total_uploaded = 0;
+			  	refreshCounter (total_uploaded, files.length, total_sel);
+			  }
+
 			  up.refresh();
 			  uploader.start();
-			});		
+			});
 
 			/*
 			uploader.bind('QueueChanged', function(up) {
@@ -249,7 +265,12 @@
 			$(".plupload-filelist").on('click', '.media-item a.dismiss', function() {
 				$(this).parent().parent().remove()
 				return false
-			});	
+			});
+
+			$(".plupload-total-holder").on('click', '.media-item a.dismiss', function() {
+				$(this).parent().parent().parent().hide()
+				return false
+			});			
 
 			uploader.bind('UploadComplete', function(up, files) {
 				if (silentmode) {
@@ -275,12 +296,19 @@
 				var response = $.parseJSON (info.response);			
 
 				if (response.status === 201) {
-					uploadedFiles.push(response.filename)
+					uploadedFiles.push(response.filename);
+					total_uploaded++;
+					refreshCounter (total_uploaded, 0, total_sel);
+					var media_id = '#media-item-o_' + file.id;
 
 					if ( ! silentmode) {
 						showMessage (file, 'Файл успешно загружен!', $(filelist_sel), 'success');
-					} else {
-						var media_id = '#media-item-o_' + file.id;
+						if (max_files_count > 1) {
+							setTimeout(function () {
+								$(media_id).hide();
+							}, 2000);
+						}
+					} else {						
 						$(media_id).hide();
 					}			
 					

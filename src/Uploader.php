@@ -23,7 +23,7 @@ class Uploader {
 		'txt'  =>array('text/plain', 'text/csv')
 	);
 
-	const VERSION = '1.7.4';
+	const VERSION = '1.7.6';
 	const FILEFIELD = 'wp_plupload';
 
 	public function __construct ()
@@ -66,12 +66,6 @@ class Uploader {
 		//$version .= '-'. mt_rand (9999, 9999999999);
 
 		wp_enqueue_style ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.min.css", __FILE__), array(), $version);
-		global $is_IE;
-
-		if ($is_IE) {
-			wp_enqueue_style ("wp-plupload-plugin-ie", plugins_url ("../assets/wp-plupload-ie.min.css", __FILE__), array(), $version);
-		}
-
 		wp_enqueue_script ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.min.js", __FILE__), array ('jquery', 'plupload'), $version);
 
 		$this->_params();
@@ -85,16 +79,16 @@ class Uploader {
 			'maxsize'       =>'2M',
 			'name'          =>'',
 			'receiver'      =>'',
-			'multi'         =>1,
+			'multi'         =>0,
 			'before'        =>'',
 			'after'         =>'',
 			'types'         =>'jpg',
 			'dir'           =>'',
 			'ow'            =>'',
 			'preview'       =>0,
-			'preview_width' => 300,
-			'description'   => 0,
-			'silentmode'    => 0
+			'preview_width' =>300,
+			'description'   =>0,
+			'silentmode'    =>0
 		);
 
 		$params = wp_parse_args($params, $defaults);
@@ -120,6 +114,17 @@ class Uploader {
 
 	    if ($preview) {
 			$html .= '<div class="plupload-preview"></div>';
+	    }
+
+	    if (intval($multi) > 1) {
+			$html .= '
+			<div class="plupload-total-holder hide-if-no-js">
+			<div class="media-item child-of-0">
+				<div class="plupload-total-status">
+					<a class="dismiss" href="#">Закрыть</a>
+					<strong>Загружено файлов: <span class="plupload-uploaded"></span> / <span class="plupload-total"></span></strong>
+				</div>
+			</div>';
 	    }
 
 	    $html .= '<div class="plupload-filelist hide-if-no-js"></div>';

@@ -30,7 +30,8 @@
 }
 
 .plupload-success,
-.plupload-new {
+.plupload-new,
+.plupload-total-status {
     padding: 10px 0 10px 14px;
     width: auto;
     margin: 0 0 1px;
@@ -42,7 +43,13 @@
     border-left-color: #46b450;
 }
 
-.plupload-status .dismiss {
+.plupload-total-status {
+    border-left-color: #b18c4e;  
+    line-height: 36px;  
+}
+
+.plupload-status .dismiss,
+.plupload-total-status .dismiss {
     display: block;
     float: right;
     margin: 0 10px 0 15px;
@@ -82,6 +89,12 @@
 
 .wp-plupload-container .plupload-filedesc {
     width: 100%;
+}
+
+.wp-plupload-container .plupload-total-holder {
+    display: none;
+    margin-top: 10px;
+    color: #000;    
 }
 
 .wp-plupload-container .plupload-filedesc textarea {
