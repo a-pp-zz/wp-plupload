@@ -57,10 +57,7 @@ class Uploader {
 	{
 		wp_enqueue_script ("jquery");
 		wp_enqueue_script ("plupload");
-
-		foreach (array('html5', 'html4') as $runtime) :
-			wp_enqueue_script ("plupload-{$runtime}");
-		endforeach;
+		wp_enqueue_script ("plupload-html5");
 
 		$version = Uploader::VERSION;
 		//$version .= '-'. mt_rand (9999, 9999999999);
