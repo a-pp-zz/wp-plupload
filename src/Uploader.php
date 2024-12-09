@@ -4,7 +4,7 @@ use AppZz\Helpers\Arr;
 
 /**
  * @package Uploader
- * @version 1.7.x
+ * @version 1.8.x
  */
 class Uploader {
 
