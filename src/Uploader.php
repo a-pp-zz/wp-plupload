@@ -8,6 +8,9 @@ use AppZz\Helpers\Arr;
  */
 class Uploader {
 
+	const VERSION = '1.8.0';
+	const FILEFIELD = 'wp_plupload';
+
 	private $_upload_dir;
 
 	private $_mimes = array (
@@ -20,11 +23,17 @@ class Uploader {
 		'xls'  =>array('application/vnd.ms-excel'),
 		'xlsx' =>array('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'),
 		'csv'  =>array('text/csv', 'text/plain'),
-		'txt'  =>array('text/plain', 'text/csv')
+		'txt'  =>array('text/plain', 'text/csv'),
+		'mp4'  =>array ('video/mp4'),
+		'mov'  =>array ('video/quicktime'),
+		'avi'  =>array ('video/msvideo'),
+		'mpg'  =>array ('video/mpeg'),
+		'mpeg' =>array ('video/mpeg')
 	);
 
-	const VERSION = '1.7.6';
-	const FILEFIELD = 'wp_plupload';
+	public $version;
+	public $css_ext;
+	public $js_ext;
 
 	public function __construct ()
 	{
@@ -41,6 +50,16 @@ class Uploader {
 			add_action('wp_ajax_nopriv_plupload', array ($this, 'handle'));
 			$this->_mimes = apply_filters('plupload_mimes', $this->_mimes);
 		}
+
+        if ( ! defined ('WP_PROD_READY') OR (defined ('WP_PROD_READY') AND ! WP_PROD_READY)) {
+            $this->version = Uploader::VERSION . 'x' . mt_rand (1000, 9999999);
+            $this->css_ext = '.css';
+            $this->js_ext = '.js';
+        } else {
+            $this->version = Uploader::VERSION;
+            $this->css_ext = '.min.css';
+            $this->js_ext = '.min.js';
+        }
 	}
 
 	public static function factory ()
@@ -59,11 +78,8 @@ class Uploader {
 		wp_enqueue_script ("plupload");
 		wp_enqueue_script ("plupload-html5");
 
-		$version = Uploader::VERSION;
-		//$version .= '-'. mt_rand (9999, 9999999999);
-
-		wp_enqueue_style ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.min.css", __FILE__), array(), $version);
-		wp_enqueue_script ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload.min.js", __FILE__), array ('jquery', 'plupload'), $version);
+		wp_enqueue_style ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload".$this->css_ext, __FILE__), array(), $this->version);
+		wp_enqueue_script ("wp-plupload-plugin", plugins_url ("../assets/wp-plupload".$this->js_ext, __FILE__), array ('jquery', 'plupload'), $this->version);
 
 		$this->_params();
 	}
