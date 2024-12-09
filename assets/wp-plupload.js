@@ -162,6 +162,10 @@
 				} else {
 					receiver = null
 				}
+
+				if (max_files_count > 1 && receiver) {
+					receiver.preview = null;
+				}
 			}
 					
 			var uploader = new plupload.Uploader({
@@ -276,8 +280,13 @@
 				if (silentmode) {
 					$(features_sel).hide();	
 				}
+
+				if (receiver) {
+					$(window).trigger('wp-upload-complete', {id: receiver.obj.attr('id')});
+				}				
 				
-				$(container).addClass('is-uploaded')
+				$(container).addClass('is-uploaded');
+				
 				if (receiver) {
 					if (receiver.tag == 'input' || receiver.tag == 'textarea') {
 						if (uploadedFiles.length === 0) {
@@ -303,7 +312,7 @@
 
 					if ( ! silentmode) {
 						showMessage (file, 'Файл успешно загружен!', $(filelist_sel), 'success');
-						if (max_files_count > 1) {
+						if (max_files_count > 5) {
 							setTimeout(function () {
 								$(media_id).hide();
 							}, 2000);
