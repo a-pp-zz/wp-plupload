@@ -270,6 +270,13 @@
 				$(this).parent().parent().remove();
 				total_uploaded = receiverUpdate ('update', receiver, $(filelist_sel));
 				refreshCounter (total_uploaded, $(features_sel));
+
+				if (total_uploaded === 0) {
+					if (receiver) {
+						$(window).trigger('wp-upload-uncomplete', {id: receiver.obj.attr('id')});
+					}					
+				}
+
 				return false;
 			});		
 
@@ -278,7 +285,13 @@
 					$(window).trigger('wp-upload-complete', {id: receiver.obj.attr('id')});
 				}								
 				$(container).addClass('is-uploaded');
-				receiverUpdate ('update', receiver, $(filelist_sel));
+				total_uploaded = receiverUpdate ('update', receiver, $(filelist_sel));
+
+				if (total_uploaded === 0) {
+					if (receiver) {
+						$(window).trigger('wp-upload-uncomplete', {id: receiver.obj.attr('id')});
+					}					
+				}				
 			})
 
 			uploader.bind('FileUploaded', function(up, file, info) {
