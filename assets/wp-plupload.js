@@ -1,8 +1,6 @@
 (function ($) {
 
 	$(function () {
-		
-		var uploadedFiles = []
 
 		function pluploadError(fileObj, errorCode, message, uploader) {
 
@@ -48,23 +46,61 @@
 			return translated
 		}
 
-		var refreshCounter = function (counter, total, filelist_sel) {
-			$(filelist_sel).find('.plupload-uploaded').html(counter);
+		var refreshCounter = function (total, filelist_sel) {
+			$(filelist_sel).find('.plupload-uploaded').html(total);
+			//$(filelist_sel).find('.plupload-maxfiles').html(total);
+		}
 
-			if (total) {
-				$(filelist_sel).find('.plupload-total').html(total);				
-			}
+		var getUploadedFiles = function (container) {
+			var files = [];
+			$(container).find('.media-item').each (function () {
+				var filepath = $(this).data('filepath');
+				if (typeof filepath != 'undefined') {
+					files.push(filepath);	
+				}				
+			})
+			return files;
+		}
+
+		var receiverUpdate = function (action, receiver, filelist) {
+			if (typeof receiver == 'object' && $(receiver).length) {
+				var hasInputReceiver = (receiver.tag == 'input' || receiver.tag == 'textarea');
+				if (action == 'reset') {
+					if (hasInputReceiver) {
+						receiver.obj.val('')
+					} else {
+						receiver.obj.html('');
+					}
+					if (receiver.preview) {
+						receiver.preview.hide();
+					}
+					return 0;
+				} else if (action == 'update' && $(filelist).length) {
+					if (hasInputReceiver) {
+						uploadedFiles = getUploadedFiles ($(filelist));
+						if (uploadedFiles.length === 0) {
+							receiver.obj.val('')
+							if (receiver.preview) {
+								receiver.preview.hide();
+							}							
+						} else {
+							receiver.obj.val(JSON.stringify(uploadedFiles))		
+						}
+						return uploadedFiles.length;
+					}					
+				}
+			}		
 		}
 
 		var showError = function (message, file, filelist_sel) {
 			 var media_id = '#media-item-o_' + file.id
 			 message = '<strong>«'+file.name+'»</strong><br />' + message		
-			 var html = '<div class="plupload-error"><a class="dismiss" href="#">Закрыть</a>'+message+'</div>'	      
-			 
-			 if ($(media_id).length > 0)
-			 	$(media_id).html(html)
-			 else
-			 	$(filelist_sel).append('<div class="media-item child-of-0" id="media-item-o_'+file.id+'">' + html + '</div>')
+			 var html = '<div class="plupload-error"><a class="dismiss" href="#">Удалить</a>'+message+'</div>'
+			 if ($(media_id).length > 0) {
+			 	$(media_id).html(html)	
+			 } else {
+				$(filelist_sel).append('<div class="media-item child-of-0" id="media-item-o_'+file.id+'">' + html + '</div>')
+			 }
 		}	
 
 		var showMessage = function (file, message, filelist_sel, status) {
@@ -106,7 +142,7 @@
 			 var html = '<div class="plupload-status '+className+'">'
 
 			 if (showDismiss) {
-			 	html += '<a class="dismiss" href="#">Закрыть</a>'
+			 	html += '<a class="dismiss" href="#">Удалить</a>'
 			 }
 
 			 if (showProgress) {
@@ -117,35 +153,32 @@
 
 			 if ($(media_id).length > 0) {
 			 	$(media_id).html(html)
-			 }		 	
-			 else {
+			 } else {
 			 	$(filelist_sel).append('<div class="media-item child-of-0" id="media-item-o_'+file.id+'">' + html + '</div>')
 			 }	
 		}		
 
 		var pluploadInit = function (container) {
 			var data = $(container).data(),
-					params = {
-						action: 'plupload',
-						_wpnonce: data.nonce
-					},
-					multipart_params = {
-						newname: data.name,
-						types: data.types,
-						dir: data.dir,
-						ow: data.ow
-					},
-					browse_button = $(container).find('.plupload-pickfiles'),
-					max_file_size_sel = $(container).find('.plupload-max-file-size'),
-					allowed_formats_sel = $(container).find('.plupload-allowed-formats'),
-					filelist_sel = $(container).find('.plupload-filelist'),
-					total_sel = $(container).find('.plupload-total-holder'),
-					total_uploaded = 0,
-					preview_sel = $(container).find('.plupload-preview'),
-					features_sel = $(container).find('.plupload-features'),
-					max_files_count = data.multi ? Number (data.multi) : 1,
-					silentmode = data.silentmode ? Number (data.silentmode) : 0,
-					receiver = {};
+				params = {
+					action: 'plupload',
+					_wpnonce: data.nonce
+				},
+				multipart_params = {
+					newname: data.name,
+					types: data.types,
+					dir: data.dir,
+					ow: data.ow
+				},
+				browse_button = $(container).find('.plupload-pickfiles'),
+				max_file_size_sel = $(container).find('.plupload-max-file-size'),
+				allowed_formats_sel = $(container).find('.plupload-allowed-formats'),
+				filelist_sel = $(container).find('.plupload-filelist'),
+				total_uploaded = 0,
+				preview_sel = $(container).find('.plupload-preview'),
+				features_sel = $(container).find('.plupload-features'),
+				max_files_count = data.multi ? Number (data.multi) : 1,
+				receiver = {};
 
 			if (data.receiver) {
 				var receiver_obj = $(data.receiver)
@@ -158,7 +191,6 @@
 					if (receiver.preview && data.previewWidth) {
 						receiver.preview_width = data.previewWidth;
 					}
-
 				} else {
 					receiver = null
 				}
@@ -175,7 +207,7 @@
 				max_file_size : data.maxsize,
 				url : pluploadConfig.ajaxurl + '?' + $.param(params),
 				file_data_name: data.filefield,
-				multi_selection: data.multi ? true : false,
+				multi_selection: Number (data.multi) > 1 ? true : false,
 				multipart_params : multipart_params,
 				filters: {
 				  mime_types : [
@@ -187,117 +219,66 @@
 			uploader.bind('Init', function(up, params) {
 				$(max_file_size_sel).html(data.maxsize);
 				$(allowed_formats_sel).html(data.types.replace(',',', '));
-
-				if (max_files_count > 1) {
-					features_sel.append('<div>Максимальное число загружаемых файлов: '+max_files_count+'</div>')
-				}
-
+				$(features_sel).find('.plupload-uploaded').html('0');
+				$(features_sel).find('.plupload-maxfiles').html(max_files_count);
 				uploader.refresh();
 			});
 		  
 			uploader.bind('FilesAdded', function(up, files) {
 
-					if (files.length > max_files_count) {
-						alert ('Максимальное число загружаемых файлов: '+max_files_count);
-						up.splice(0);
-						up.refresh();
-						return false;
-					}
+				if (max_files_count === 1) {
+					total_uploaded = 0;
+					$(filelist_sel).html('');
+				}
+
+				if ((files.length + total_uploaded) > max_files_count) {
+					alert ('Максимальное число загружаемых файлов: '+max_files_count);
+					up.splice(0);
+					up.refresh();
+					return false;
+				}
 
 			  	$(container).removeClass('is-uploaded')
-			  	$(filelist_sel).html('')
+			  	receiverUpdate ('reset', receiver, null);		  
 
-				if (receiver) {
-					if (receiver.tag == 'input' || receiver.tag == 'textarea') {
-						receiver.obj.val('')
-					} else {
-						receiver.obj.html('');
-					}
+				$.each(files, function(i, file) {
+					showMessage (file, null, $(filelist_sel), 'new')
+				});
 
-					if (receiver.preview) {
-						receiver.preview.hide();
-					}
-				}		  
-
-			  $.each(files, function(i, file) {
-			  	  showMessage (file, null, $(filelist_sel), 'new')
-			  });
-
-			  if (max_files_count > 1) {
-			  	$(total_sel).show();
-			  	total_uploaded = 0;
-			  	refreshCounter (total_uploaded, files.length, total_sel);
-			  }
-
-			  up.refresh();
-			  uploader.start();
+				up.refresh();
+				uploader.start();
 			});
-
-			/*
-			uploader.bind('QueueChanged', function(up) {
-			  console.log(up.files)
-			});
-			*/
 
 			uploader.bind('UploadProgress', function(up, file) {
-			  var media_id = '#media-item-o_' + file.id
-			  $(media_id).find('.plupload-remove-file').hide()
-			  $(media_id).find('.progress').show();
-			  $(media_id).find('.progress .percent').html(file.percent + '%')
-			  $(media_id).find('.progress .bar').css('width', file.percent*2)		  
+				var media_id = '#media-item-o_' + file.id
+				$(media_id).find('.plupload-remove-file').hide()
+				$(media_id).find('.progress').show();
+				$(media_id).find('.progress .percent').html(file.percent + '%')
+				$(media_id).find('.progress .bar').css('width', file.percent*2)		  
 			});
 
 			uploader.bind('Error', function(up, err) {
-				$(container).removeClass('is-uploaded')
-			 	var message = pluploadError (err.file, err.code, err.message, up)
-			 	showMessage (err.file, message, $(filelist_sel), 'error')
+				$(container).removeClass('is-uploaded');
+			 	var message = pluploadError (err.file, err.code, err.message, up);
+			 	showMessage (err.file, message, $(filelist_sel), 'error');
 			 	up.refresh();
-				
-				if (receiver) {
-					if (receiver.tag == 'input' || receiver.tag == 'textarea') {
-						receiver.obj.val('')
-					} else {
-						receiver.obj.html('');
-					}
-
-					if (receiver.preview) {
-						receiver.preview.hide();
-					}				
-				}	
+				total_uploaded = receiverUpdate ('update', receiver, $(filelist_sel));
+				refreshCounter (total_uploaded, $(features_sel));
 			});
 
-			$(".plupload-filelist").on('click', '.media-item a.dismiss', function() {
-				$(this).parent().parent().remove()
-				return false
-			});
-
-			$(".plupload-total-holder").on('click', '.media-item a.dismiss', function() {
-				$(this).parent().parent().parent().hide()
-				return false
-			});			
+			$(filelist_sel).on('click', '.media-item a.dismiss', function() {
+				$(this).parent().parent().remove();
+				total_uploaded = receiverUpdate ('update', receiver, $(filelist_sel));
+				refreshCounter (total_uploaded, $(features_sel));
+				return false;
+			});		
 
 			uploader.bind('UploadComplete', function(up, files) {
-				if (silentmode) {
-					$(features_sel).hide();	
-				}
-
 				if (receiver) {
 					$(window).trigger('wp-upload-complete', {id: receiver.obj.attr('id')});
-				}				
-				
+				}								
 				$(container).addClass('is-uploaded');
-				
-				if (receiver) {
-					if (receiver.tag == 'input' || receiver.tag == 'textarea') {
-						if (uploadedFiles.length === 0) {
-							receiver.obj.val('')
-						} else {
-							var json = JSON.stringify(uploadedFiles)
-							receiver.obj.val(json)		
-						}
-					}
-				}
-				uploadedFiles = []
+				receiverUpdate ('update', receiver, $(filelist_sel));
 			})
 
 			uploader.bind('FileUploaded', function(up, file, info) {
@@ -305,21 +286,10 @@
 				var response = $.parseJSON (info.response);			
 
 				if (response.status === 201) {
-					uploadedFiles.push(response.filename);
-					total_uploaded++;
-					refreshCounter (total_uploaded, 0, total_sel);
+					refreshCounter (++total_uploaded, features_sel);
+					showMessage (file, 'Файл успешно загружен!', $(filelist_sel), 'success');
 					var media_id = '#media-item-o_' + file.id;
-
-					if ( ! silentmode) {
-						showMessage (file, 'Файл успешно загружен!', $(filelist_sel), 'success');
-						if (max_files_count > 5) {
-							setTimeout(function () {
-								$(media_id).hide();
-							}, 2000);
-						}
-					} else {						
-						$(media_id).hide();
-					}			
+					$(media_id).attr('data-filepath', response.filename);
 					
 					if (receiver.preview && response.mime.search('image') !== -1) {
 						
@@ -328,7 +298,7 @@
 							maxHeight: receiver.preview_width+'px'
 						});
 
-						var img = $('<img />');						
+						var img = $('<img />');
 						img.attr('src', response.url);
 							 
 						img.load(function() {
@@ -340,9 +310,9 @@
 						});							  
 
 						receiver.preview.html(img).show();
-            $(container).trigger('wp-plupload-preview-changed', {
-              preview: $(receiver.preview)
-            });						
+			            $(container).trigger('wp-plupload-preview-changed', {
+			            	preview: $(receiver.preview)
+			            });						
 					}								
 				} else {
 					showMessage (file, response.message, $(filelist_sel), 'error')
@@ -356,21 +326,20 @@
 			pluploadInit($(this))
 		})
 
-    $(window).on('wp-plupload-reinit', function (event, target) {
-    	pluploadInit(target)  
-    });	
+	    $(window).on('wp-plupload-reinit', function (event, target) {
+	    	pluploadInit(target)  
+	    });	
 
-    $(window).on('wp-plupload-preview', function (event, target) {
+	    $(window).on('wp-plupload-preview', function (event, target) {
 			var preview = $(target.target).find('.plupload-preview'),
-					previewWidth = $(target.target).data('preview-width'),
-					receiver = $(target.target).data('receiver');
-					description = $(target.target).find('.plupload-filedesc textarea'),					
-					img = '<img width="'+previewWidth+'" src="'+target.preview.file+'" />';			
+				previewWidth = $(target.target).data('preview-width'),
+				receiver = $(target.target).data('receiver');
+				description = $(target.target).find('.plupload-filedesc textarea'),					
+				img = '<img width="'+previewWidth+'" src="'+target.preview.file+'" />';			
 			preview.html(img).show();
 			$(receiver).val(JSON.stringify([target.preview.path]));
 			$(description).val(target.preview.description);
-    });    
-
+	    });
 	})
 
 })(jQuery)

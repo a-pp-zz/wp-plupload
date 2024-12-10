@@ -8,7 +8,7 @@ use AppZz\Helpers\Arr;
  */
 class Uploader {
 
-	const VERSION = '1.8.0';
+	const VERSION = '1.8.1';
 	const FILEFIELD = 'wp_plupload';
 
 	private $_upload_dir;
@@ -101,7 +101,6 @@ class Uploader {
 			'preview'       =>0,
 			'preview_width' =>300,
 			'description'   =>0,
-			'silentmode'    =>0
 		);
 
 		$params = wp_parse_args($params, $defaults);
@@ -113,31 +112,21 @@ class Uploader {
 
 		$html = '';
 
-		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-preview="%s" data-preview-width="%d" data-nonce="%s" data-silentmode="%s">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), esc_attr ($preview), intval ($preview_width), wp_create_nonce('wp-plupload-'.$types), esc_attr ($silentmode));
+		$html = sprintf ('<div class="wp-plupload-container media-upload-form" id="plupload-%s" data-types="%s" data-multi="%d" data-maxsize="%s" data-receiver="%s" data-filefield="%s" data-dir="%s" data-ow="%s" data-name="%s" data-preview="%s" data-preview-width="%d" data-nonce="%s">', esc_attr($id), esc_attr($types), intval($multi), esc_attr($maxsize), esc_attr ($receiver), esc_attr (self::FILEFIELD), esc_attr ($dir), esc_attr ($ow), esc_attr ($name), esc_attr ($preview), intval ($preview_width), wp_create_nonce('wp-plupload-'.$types));
 		$html .= $before;
 
 		$html .= '<div class="plupload-features-holder">
 		    <div class="plupload-features">
 			    <div>Максимальный размер файла: <span class="plupload-max-file-size"></span></div>
 			    <div>Разрешенные типы файлов: <span class="plupload-allowed-formats"></span></div>
+			    <div>Загружено файлов: <span class="plupload-uploaded">0</span>/<span class="plupload-maxfiles">0</span></div>
 		    </div>
 	    </div>';
 
 	    $html .= sprintf ('<a id="plupload-pickfiles-%s" role="button" class="button button-primary plupload-pickfiles" href="#">%s</a>', esc_attr($id), $title);
 
-	    if ($preview) {
+	    if (intval($multi) and $preview) {
 			$html .= '<div class="plupload-preview"></div>';
-	    }
-
-	    if (intval($multi) > 1) {
-			$html .= '
-			<div class="plupload-total-holder hide-if-no-js">
-			<div class="media-item child-of-0">
-				<div class="plupload-total-status">
-					<a class="dismiss" href="#">Закрыть</a>
-					<strong>Загружено файлов: <span class="plupload-uploaded"></span> / <span class="plupload-total"></span></strong>
-				</div>
-			</div>';
 	    }
 
 	    $html .= '<div class="plupload-filelist hide-if-no-js"></div>';
