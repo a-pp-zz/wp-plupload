@@ -8,7 +8,7 @@ use AppZz\Helpers\Arr;
  */
 class Uploader {
 
-	const VERSION = '1.8.3';
+	const VERSION = '1.8.4';
 	const FILEFIELD = 'wp_plupload';
 
 	private $_upload_dir;
