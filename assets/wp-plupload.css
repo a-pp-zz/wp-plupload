@@ -102,3 +102,12 @@
     padding: 1%;
     height: 100px;    
 }
+
+.plupload-filelist span.plupload-message {
+    display: block;
+    color: #000;
+}
+
+.plupload-filelist .plupload-error span.plupload-message {
+    color: #dc3232;
+}

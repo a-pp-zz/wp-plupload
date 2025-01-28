@@ -94,7 +94,7 @@
 
 		var showError = function (message, file, filelist_sel) {
 			 var media_id = '#media-item-o_' + file.id
-			 message = '<strong>«'+file.name+'»</strong><br />' + message		
+			 message = '<strong>«'+file.name+'»</strong><span class="plupload-message">' + message + '</span>'		
 			 var html = '<div class="plupload-error"><a class="dismiss" href="#">Удалить</a>'+message+'</div>'
 			 if ($(media_id).length > 0) {
 			 	$(media_id).html(html)	
@@ -111,7 +111,7 @@
 			 var showProgress = false;
 
 			 if (message) {
-			 	messageFull += '<br />' + message			
+			 	messageFull += '<span class="plupload-message">' + message + '</span>'			
 			 }
 
 			 switch (status) {
